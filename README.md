@@ -1,4 +1,4 @@
-segmenter
+pyhashseg
 =========
 
-Extension of Peter Norvig's word segmenter that allows online updating of the corpus dependency.
+A modification of Peter Norvig's word segmentation code that allows its corpus dependency to be updated.

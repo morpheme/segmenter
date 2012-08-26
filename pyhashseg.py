@@ -35,7 +35,7 @@ class Pdist(dict):
     ''''A probability distribution estimated from counts in datafile.'''
     def __init__(self, data=[], N=None, missingfn=None):
         for key,count in data:
-            self[key] = self.get(key, 0) + int(count)
+            self[key] = self.get(key, 0) + int(count)   #since this is being populated en masse, all vals are initially 0; hence the + int(count)
         self.N = float(N or sum(self.itervalues()))
         self.missingfn = missingfn or (lambda k, N: 1./N)
     def __call__(self, key): 
