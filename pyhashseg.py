@@ -59,8 +59,8 @@ N = 1024908267229   #number of tokens
 Pw  = Pdist(datafile('unigrams.txt'), N, unkwordprob)
 
 def Pwords(words): 
-    '''The Naive Bayes probability of a sequence of words.'''
-    return product(Pw(w) for w in words)
+    '''The Naive Bayes probability of a sequence of words.'''   #although really, there's not much Bayesian voodoo going on
+    return product(Pw(w) for w in words)        #Pw can take w as arg because of defined __call__ magic method
 
 def product(nums):
     '''Return the product of a sequence of numbers.'''
@@ -69,7 +69,7 @@ def product(nums):
 def splits(text, L=20):
     '''Return a list of all possible (first, remaining) pairs, len(first)<=L.'''
     return [(text[:i+1], text[i+1:]) 
-            for i in range(min(len(text), L))]
+            for i in range(min(len(text), L))]  #ex: with text = 'spark', [('s', 'park'), ('sp', 'ark'), ('spa', 'rk'), ('spar', 'k'), ('spark', '')]
     
 def memo(f):
     '''Memoize function f.'''
