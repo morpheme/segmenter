@@ -32,15 +32,21 @@ from collections import defaultdict
 from math import log10
 
 class Pdist(dict):
-    ''''A probability distribution estimated from counts in datafile.'''
-    def __init__(self, data=[], N=None, missingfn=None):
+    ''''A probability distribution estimated from counts in a datafile.'''
+    def __init__(self, data=[], N=None, unkfn=None):
         for key,count in data:
             self[key] = self.get(key, 0) + int(count)   #since this is being populated en masse, all vals are initially 0; hence the + int(count)
-        self.N = float(N or sum(self.itervalues()))
-        self.missingfn = missingfn or (lambda k, N: 1./N)
-    def __call__(self, key): 
-        if key in self: return self[key]/self.N  
-        else: return self.missingfn(key, self.N)
+        self.N = float(N or sum(self.itervalues()))     #if N is not supplied, back off to the sum of all values in the dict instance. 
+        self.unkfn = unkfn or (lambda key, N: 1./N)   #if unkfn is not supplied, back off to a simple estimation of an unknown word
+    #an already-created instance of Pdist, when called, executes __call__. 
+    #the instance is callable like a function (meaning that Pw below can take args). 
+    def __call__(self, key):    
+        if key in self: return self[key]/self.N     #returns the simple MLE if the calling key is in the instance's dict  
+        else: return self.unkfn(key, self.N)    #if not, back off to whatever we decided the unknown estimation method is
+
+def unkwordprob(key, N):
+    '''Estimate the probability of an unknown word.'''
+    return 10./(N * 10**len(key))       #seat-of-the-pants heuristic
 
 def datafile(name, sep='\t'):
     '''Read key,value pairs from file.'''
@@ -48,27 +54,23 @@ def datafile(name, sep='\t'):
         line = line.rstrip('\n')
         yield line.split(sep)
         
-def avoid_long_words(key, N):
-    '''Estimate the probability of an unknown word.'''
-    return 10./(N * 10**len(key))
-        
-N = 1024908267229 ## Number of tokens
+N = 1024908267229   #number of tokens
 
-Pw  = Pdist(datafile('unigrams.txt'), N, avoid_long_words)
-
-def splits(text, L=20):
-    "Return a list of all possible (first, rem) pairs, len(first)<=L."
-    return [(text[:i+1], text[i+1:]) 
-            for i in range(min(len(text), L))]
+Pw  = Pdist(datafile('unigrams.txt'), N, unkwordprob)
 
 def Pwords(words): 
-    "The Naive Bayes probability of a sequence of words."
+    '''The Naive Bayes probability of a sequence of words.'''
     return product(Pw(w) for w in words)
 
 def product(nums):
-    "Return the product of a sequence of numbers."
-    return reduce(operator.mul, nums, 1)
+    '''Return the product of a sequence of numbers.'''
+    return reduce(operator.mul, nums, 1)        #ex: with nums = [2,3,4], (((1x2)x3)x4) = 24    
 
+def splits(text, L=20):
+    '''Return a list of all possible (first, remaining) pairs, len(first)<=L.'''
+    return [(text[:i+1], text[i+1:]) 
+            for i in range(min(len(text), L))]
+    
 def memo(f):
     '''Memoize function f.'''
     table = {}
@@ -81,7 +83,8 @@ def memo(f):
 
 @memo
 def segment(text):
-    "Return a list of words that is the best segmentation of text."
+    '''Return a list of words that is the best segmentation of text.'''
     if not text: return []
-    candidates = ([first]+segment(rem) for first,rem in splits(text))
+    candidates = ([first]+segment(remaining) for first,remaining in splits(text))
+    #intercept candidates here and implement a lookup method for new candidates
     return max(candidates, key=Pwords)
