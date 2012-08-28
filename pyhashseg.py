@@ -27,9 +27,7 @@ the current timeframe.
 @since: 8:55:36 PM on Aug 25, 2012
 '''
 
-import re, string, random, glob, operator, heapq
-from collections import defaultdict
-from math import log10
+import operator, sys, re
 
 class Pdist(dict):
     ''''A probability distribution estimated from counts in a datafile.'''
@@ -86,5 +84,23 @@ def segment(text):
     '''Return a list of words that is the best segmentation of text.'''
     if not text: return []
     candidates = ([first]+segment(remaining) for first,remaining in splits(text))
-    #intercept candidates here and implement a lookup method for new candidates
+    #intercept candidates here and implement a lookup function for viability of candidates
     return max(candidates, key=Pwords)
+
+def normalize(text):
+    text = text.lower()
+    text = re.sub('#', '', text)
+    return text
+    
+def main():
+    try:
+        inpstr = normalize(sys.argv[1])
+        segs = segment(inpstr)
+        segs = ' '.join(segs)
+        print segs
+    except IndexError:
+        print 'Please supply a string as an argument.'
+    
+if __name__ == "__main__":
+    main()
+
