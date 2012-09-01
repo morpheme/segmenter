@@ -105,11 +105,13 @@ if args.infile:
     with open(args.infile,'r') as f:
         for line in enumerate(f.readlines()):
             print 'Input: ', line[1],   #suppress empty line with comma
-            segs = segment(line[1])
+            inpstr = normalize(line[1])
+            segs = segment(inpstr)
             segs = ' '.join(segs)
             print 'Possible output: ', segs     
 if args.string:
-    segs = segment(args.string)
+    inpstr = normalize(args.string)
+    segs = segment(inpstr)
     segs = ' '.join(segs)
     print segs
 
