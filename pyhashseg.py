@@ -26,8 +26,7 @@ the current timeframe.
 @contact: brandon.devine@gmail.com
 @since: 8:55:36 PM on Aug 25, 2012
 '''
-
-import operator, sys, re
+import argparse, operator, sys, re
 
 class Pdist(dict):
     ''''A probability distribution estimated from counts in a datafile.'''
@@ -91,16 +90,27 @@ def normalize(text):
     text = text.lower()
     text = re.sub('#', '', text)
     return text
-    
-def main():
-    try:
-        inpstr = normalize(sys.argv[1])
-        segs = segment(inpstr)
-        segs = ' '.join(segs)
-        print segs
-    except IndexError:
-        print 'Please supply a string as an argument.'
-    
-if __name__ == "__main__":
-    main()
+
+ 
+p = argparse.ArgumentParser(description="pyhashseg.py")
+p.add_argument("-s", dest="string")
+p.add_argument("-f", dest="infile")
+
+args = p.parse_args()
+
+if args.infile == None and args.string == None or args.infile != None and args.string != None:
+    print "Please provide a string xor a file"
+    sys.exit(1)
+if args.infile:
+    with open(args.infile,'r') as f:
+        for line in enumerate(f.readlines()):
+            print 'Input: ', line[1],   #suppress empty line with comma
+            segs = segment(line[1])
+            segs = ' '.join(segs)
+            print 'Possible output: ', segs     
+if args.string:
+    segs = segment(args.string)
+    segs = ' '.join(segs)
+    print segs
+
 

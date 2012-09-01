@@ -1,5 +1,5 @@
 Preliminaries:
-- Modify segmenterBasic for batch mode
+- DONE:  Modify segmenterBasic for batch mode
 - Rejigger collection code to grab hashtags as described below
 - Modify segmenterBasic to segmenterExtended
 	- Establish baseline for probs of previously unseen words.  
