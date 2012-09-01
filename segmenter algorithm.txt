@@ -1,0 +1,73 @@
+Preliminaries:
+- Modify segmenterBasic for batch mode
+- Rejigger collection code to grab hashtags as described below
+- Modify segmenterBasic to segmenterExtended
+	- Establish baseline for probs of previously unseen words.  
+		- Does this mean somehow weighting news results more heavily?  
+		- How does this interface with default backoff prob?
+	- Add code for Bing API
+		
+
+Data collection:
+- 100 unique instances of concatenated words from BNC, as in Norvig's 'choosespain' example.
+- 100 unique instances of hashtags:
+	- 50 from general trends
+	- 50 from personal feed
+	- No particular motivation for this breakdown, other than that my personal feed follows 
+	several news sources that propagate hashtags that reach the general population rather 
+	than a particular demographic.
+	- Note time collected over!
+
+Gold evaluation:
+- Determine number of judges available. Hopefully more than one.
+- Manual evaluation: pick the best candidate with format:
+	Input: choosespain		
+	Possible output: choose spain
+	
+	Input: #eastwooding	
+	Possible output: eastwooding	
+	
+	...etc.
+	
+	- Note that this format allows for long input and output strings, such as Norvig's H2G2 example. 
+	This format will be followed in all evaluations.
+	
+- General points:
+	- Suppose that I gave the judge(s) the predetermined max mcandidate derived from the segmenter* script.
+	They would then simply be assessing whether that mcandidate was correct. However, that introduces a
+	bias towards the performance of the segmenter: there is no chance to evaluate the "best" segmentation,
+	as determined by the judge(s). 
+	- However, the evaluation method as described isn't without its issues: it may be the case that judges 
+	disagree on segmentation and produce up to n candidates for n judges. The solution generally is to 
+	use Kendall's tau-c, which ranks inter-annotator agreement, for all n candidates. Then 
+	mcandidate = max(tau-c(c for c in ncandidate)). Do a test run of this with 10 fake judges and 5 
+	candidates for a test string. 
+
+First iteration:
+- Run segmenterBasic: take in the data file and output a modified version with format:
+	Input: choosespain		
+	Output: choose spain
+	
+	Input: #eastwooding	
+	Output: eastwood ing	#decent! I would have expected "east wood in g".
+	
+	...etc.
+	
+Second iteration:
+- Run segmenterExtended: take in the data file and output a modified version with format:
+	Input: choosespain		
+	Possible output: choose spain
+	
+	Input: #eastwooding	
+	Possible output: eastwooding	
+	
+	...etc.
+
+Evaluation:
+- Find x% agreement between gold and segmenterBasic data
+- Find y% agreement between gold and segmenterExtended data
+
+If necessary:
+- Repeat above with tweaks to segmenterExtended algorithm until y% > x%
+
+
