@@ -1,6 +1,17 @@
 Preliminaries:
 - DONE:  Modify segmenterBasic for batch mode
-- Rejigger collection code to grab hashtags as described below
+- IN PROGRESS: Rejigger collection code to grab hashtags as described below
+	- Problem: It is possible to avoid authentication and use the REST API exclusively to generate 
+	hashtags; however, that option means rate limiting and limited returns. (If selecting
+	by USA WOEID to somewhat guarantee English tweets the hits are low in quantity; if not 
+	filtering by location, the hits are low in quality.) Also, there is no reason that the
+	dataset should be limited to trending hashtags.
+	- Solution: Continue with using Streaming API. Just filter by hashtag text in Entities and 
+	user language. The quantity issue will be 99% solved and the quality issue 90% solved.
+	- Libraries issues: 
+		- Where is tweetstream installed? 
+		- Does it have the OAuth info hand-coded?
+		- If so, are twitter__login.py and its relatives just a waste of time?
 - Modify segmenterBasic to segmenterExtended
 	- Establish baseline for probs of previously unseen words.  
 		- Does this mean somehow weighting news results more heavily?  
@@ -11,11 +22,11 @@ Preliminaries:
 Data collection:
 - 100 unique instances of concatenated words from BNC, as in Norvig's 'choosespain' example.
 - 100 unique instances of hashtags:
-	- 50 from general trends
-	- 50 from personal feed
+	- m from general trends
+	- n from personal feed
 	- No particular motivation for this breakdown, other than that my personal feed follows 
 	several news sources that propagate hashtags that reach the general population rather 
-	than a particular demographic.
+	than a particular demographic. Talk to Rob about wisdom of this.
 	- Note time collected over!
 
 Gold evaluation:
@@ -31,6 +42,9 @@ Gold evaluation:
 	
 	- Note that this format allows for long input and output strings, such as Norvig's H2G2 example. 
 	This format will be followed in all evaluations.
+	- TO DO: 
+		- Write script that pulls hashtags from database to interact with judges. Hopefully it can
+		present an editable string so as to cut down on errors.
 	
 - General points:
 	- Suppose that I gave the judge(s) the predetermined max mcandidate derived from the segmenter* script.
@@ -42,6 +56,7 @@ Gold evaluation:
 	use Kendall's tau-c, which ranks inter-annotator agreement, for all n candidates. Then 
 	mcandidate = max(tau-c(c for c in ncandidate)). Do a test run of this with 10 fake judges and 5 
 	candidates for a test string. 
+		- I'll need a script for tau-c calculation.
 
 First iteration:
 - Run segmenterBasic: take in the data file and output a modified version with format:
