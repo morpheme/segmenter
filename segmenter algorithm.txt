@@ -8,6 +8,7 @@ Preliminaries:
 	dataset should be limited to trending hashtags.
 	- Solution: Continue with using Streaming API. Just filter by hashtag text in Entities and 
 	user language. The quantity issue will be 99% solved and the quality issue 90% solved.
+	- Add hook into database, rather than the file output format currently used.
 	- Libraries issues: 
 		- Where is tweetstream installed? 
 		- Does it have the OAuth info hand-coded?
