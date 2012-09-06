@@ -87,7 +87,7 @@ def retrieve_hashtags(numhashtags=100):
                 if tweet.get('text') and tweet['user']['lang'] == 'en':   
                     if tweet['entities']['hashtags']['text']:
 						ht = tweet['entities']['hashtags']['text']
-                        curs.execute("""INSERT INTO tblTweets VALUES (null,?)""",(ht))
+                        curs.execute("""INSERT INTO tblHashtags VALUES (null,?)""",(ht))
 						conn.commit()
 						count += 1
                         break

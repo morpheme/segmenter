@@ -26,7 +26,7 @@ the current timeframe.
 @contact: brandon.devine@gmail.com
 @since: 8:55:36 PM on Aug 25, 2012
 '''
-import argparse, operator, sys, re
+import argparse, operator, sys, os, re, sqlite3
 
 class Pdist(dict):
     ''''A probability distribution estimated from counts in a datafile.'''
@@ -91,6 +91,17 @@ def normalize(text):
     text = re.sub('#', '', text)
     return text
 
+def dbsegpop():
+	pathname = os.path.abspath('')
+	if os.path.exists(pathname+'/hashtags.db') == False:
+		print 'Please ensure that hashtags.db is in the current directory.'
+		sys.exit(1)
+	else:
+		conn = sqlite3.connect('hashtags.db')
+		curs = conn.cursor()
+	
+	#curs.execute("""INSERT INTO tblHashtags VALUES (null,?
+	
  
 p = argparse.ArgumentParser(description="pyhashseg.py")
 p.add_argument("-s", dest="string")
@@ -98,21 +109,22 @@ p.add_argument("-f", dest="infile")
 
 args = p.parse_args()
 
-if args.infile == None and args.string == None or args.infile != None and args.string != None:
-    print "Please provide a string xor a file"
-    sys.exit(1)
 if args.infile:
     with open(args.infile,'r') as f:
         for line in enumerate(f.readlines()):
-            print 'Input: ', line[1],   #suppress empty line with comma
-            inpstr = normalize(line[1])
-            segs = segment(inpstr)
-            segs = ' '.join(segs)
-            print 'Possible output: ', segs     
-if args.string:
+			print 'Input: ', line[1],	#comma suppresses empty line
+			inpstr = normalize(line[1])
+			segs = segment(inpstr)
+			segs = ' '.join(segs)
+			print 'Basic output: ', segs
+			#print 'Extended output: ', ...
+elif args.string:
     inpstr = normalize(args.string)
     segs = segment(inpstr)
     segs = ' '.join(segs)
     print segs
+else:
+	#dbsegpop()
+	pass
 
 

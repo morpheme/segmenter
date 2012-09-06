@@ -8,7 +8,10 @@ Preliminaries:
 	dataset should be limited to trending hashtags.
 	- Solution: Continue with using Streaming API. Just filter by hashtag text in Entities and 
 	user language. The quantity issue will be 99% solved and the quality issue 90% solved.
-	- Add hook into database, rather than the file output format currently used.
+	- Add hook into database in addition to the file output format currently used.
+		- pyhashseg now takes three options: string, flag, or None. The first two are already
+		handled; the final option will be the default method and will retrieve database members
+		
 	- Libraries issues: 
 		- Where is tweetstream installed? 
 		- Does it have the OAuth info hand-coded?
