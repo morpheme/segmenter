@@ -84,12 +84,12 @@ def retrieve_hashtags(numhashtags=100):
             for tweet in stream:
                 # a check is needed on text as some "tweets" are actually just API operations
                 # the language selection doesn't really work but it's better than nothing(?)
-                if tweet.get('text') and tweet['user']['lang'] == 'en':   
+                if tweet.get('text') and tweet['user']['lang'] == 'en':
                     if tweet['entities']['hashtags']['text']:
-						ht = tweet['entities']['hashtags']['text']
+                        ht = tweet['entities']['hashtags']['text']
                         curs.execute("""INSERT INTO tblHashtags VALUES (null,?)""",(ht))
-						conn.commit()
-						count += 1
+                        conn.commit()
+                        count += 1
                         break
     except tweetstream.ConnectionError, e:
         print 'Disconnected from Twitter at '+time.strftime("%d %b %Y %H:%M:%S", time.localtime()) \

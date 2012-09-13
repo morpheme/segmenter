@@ -92,17 +92,15 @@ def normalize(text):
     return text
 
 def dbsegpop():
-	pathname = os.path.abspath('')
-	if os.path.exists(pathname+'/hashtags.db') == False:
-		print 'Please ensure that hashtags.db is in the current directory.'
-		sys.exit(1)
-	else:
-		conn = sqlite3.connect('hashtags.db')
-		curs = conn.cursor()
-	
-	#curs.execute("""INSERT INTO tblHashtags VALUES (null,?
-	
- 
+    pathname = os.path.abspath('')
+    if os.path.exists(pathname+'/hashtags.db') == False:
+        print 'Please ensure that hashtags.db is in the current directory.'
+        sys.exit(1)
+    else:
+        conn = sqlite3.connect('hashtags.db')
+        curs = conn.cursor()
+        pass #curs.execute("""INSERT INTO tblHashtags VALUES (null,?
+     
 p = argparse.ArgumentParser(description="pyhashseg.py")
 p.add_argument("-s", dest="string")
 p.add_argument("-f", dest="infile")
@@ -112,19 +110,18 @@ args = p.parse_args()
 if args.infile:
     with open(args.infile,'r') as f:
         for line in enumerate(f.readlines()):
-			print 'Input: ', line[1],	#comma suppresses empty line
-			inpstr = normalize(line[1])
-			segs = segment(inpstr)
-			segs = ' '.join(segs)
-			print 'Basic output: ', segs
-			#print 'Extended output: ', ...
+            print 'Input: ', line[1],    #comma suppresses empty line
+            inpstr = normalize(line[1])
+            segs = segment(inpstr)
+            segs = ' '.join(segs)
+            print 'Basic output: ', segs
+            #print 'Extended output: ', ...
 elif args.string:
     inpstr = normalize(args.string)
     segs = segment(inpstr)
     segs = ' '.join(segs)
     print segs
 else:
-	#dbsegpop()
-	pass
-
+    #dbsegpop()
+    pass
 

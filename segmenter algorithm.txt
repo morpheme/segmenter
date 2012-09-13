@@ -37,13 +37,13 @@ Gold evaluation:
 - Determine number of judges available. Hopefully more than one.
 - Manual evaluation: pick the best candidate with format:
 	Input: choosespain		
-	Possible output: choose spain
+	Possible output: choose spain (entered by judge)
 	
 	Input: #eastwooding	
-	Possible output: eastwooding	
+	Possible output: eastwooding (entered by judge)
 	
 	...etc.
-	
+
 	- Note that this format allows for long input and output strings, such as Norvig's H2G2 example. 
 	This format will be followed in all evaluations.
 	- TO DO: 
@@ -51,16 +51,24 @@ Gold evaluation:
 		present an editable string so as to cut down on errors.
 	
 - General points:
-	- Suppose that I gave the judge(s) the predetermined max mcandidate derived from the segmenter* script.
+	- Suppose that I gave the judge(s) the predetermined max mcandidate derived from the segmenter script.
 	They would then simply be assessing whether that mcandidate was correct. However, that introduces a
 	bias towards the performance of the segmenter: there is no chance to evaluate the "best" segmentation,
 	as determined by the judge(s). 
 	- However, the evaluation method as described isn't without its issues: it may be the case that judges 
-	disagree on segmentation and produce up to n candidates for n judges. The solution generally is to 
-	use Kendall's tau-c, which ranks inter-annotator agreement, for all n candidates. Then 
-	mcandidate = max(tau-c(c for c in ncandidate)). Do a test run of this with 10 fake judges and 5 
-	candidates for a test string. 
-		- I'll need a script for tau-c calculation.
+	disagree on segmentation and produce up to n candidates for n judges. The variability of n makes it
+	difficult to use in Cohen's or Fleiss' kappa (see k in http://en.wikipedia.org/wiki/Fleiss%27_kappa#Worked_example).
+	- So the basic idea, if the gold standard doesn't include manually edited strings:
+		-let the basic version of the segmenter do its thing. Then give each judge the original and the basic 
+		segmented version of it, and (s)he is allowed to place the latter in one of two categories: wrong or 
+		(possibly) right. (By possibly, I refer to the case that there may be more than one acceptable 
+		segmentation for a string. The judge must simply assess whether the segmented string is a well-formed 
+		phrase.)
+		- Concurrently and randomly, also offer each judge the original and the extended segmented version, 
+		with the same categorization taking place. Consequently the complete evaluation offers two opportunities
+		to judge the concatenated string.
+		- In no case is the judge informed as to which segmented version is being offered. 
+
 
 First iteration:
 - Run segmenterBasic: take in the data file and output a modified version with format:
@@ -83,8 +91,7 @@ Second iteration:
 	...etc.
 
 Evaluation:
-- Find x% agreement between gold and segmenterBasic data
-- Find y% agreement between gold and segmenterExtended data
+-
 
 If necessary:
 - Repeat above with tweaks to segmenterExtended algorithm until y% > x%
