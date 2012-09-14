@@ -44,18 +44,16 @@ def dbsetup(dbname='hashtags.db'):
         curs = conn.cursor()    
         #set up empty table.  NB: sqlite places no limits on length of VARCHAR field
         curs.execute("""CREATE TABLE tblHashtags (UID INTEGER PRIMARY KEY, \
-			"text.original" VARCHAR(42), \
 			"instudy" INTEGER DEFAULT 0, \
-			"text.gold.1" VARCHAR(42), \
-			"text.gold.2" VARCHAR(42), \
-			"text.gold.3" VARCHAR(42), \
-			"text.gold.final" VARCHAR(42), \
-			"text.seg.basic" VARCHAR(42), \
+			"text.original" VARCHAR(42), \
+			"text.seg.basic" VARCHAR (42), \
+			"score.seg.basic.1" INTEGER DEFAULT 0, \
+			"score.seg.basic.2" INTEGER DEFAULT 0, \
 			"text.seg.ext" VARCHAR(42), \
-			"agree.basic-gold.abs" INTEGER DEFAULT 0, \
-			"agree.basic-gold.edist" VARCHAR(42), \
-			"agree.ext-gold.abs" INTEGER DEFAULT 0, \
-			"agree.ext-gold.edist" VARCHAR(42))""")
+			"score.seg.ext.1" INTEGER DEFAULT 0, \
+			"score.seg.ext.2" INTEGER DEFAULT 0, \
+			
+			)""") 
         #save
         conn.commit()
     #else re-initialize the existing database
