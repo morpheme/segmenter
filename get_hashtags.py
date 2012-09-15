@@ -51,9 +51,7 @@ def dbsetup(dbname='hashtags.db'):
 			"score.seg.basic.2" INTEGER DEFAULT 0, \
 			"text.seg.ext" VARCHAR(42), \
 			"score.seg.ext.1" INTEGER DEFAULT 0, \
-			"score.seg.ext.2" INTEGER DEFAULT 0, \
-			
-			)""") 
+			"score.seg.ext.2" INTEGER DEFAULT 0)""") 
         #save
         conn.commit()
     #else re-initialize the existing database
@@ -93,10 +91,9 @@ def retrieve_hashtags(numhashtags=100):
         print 'Disconnected from Twitter at '+time.strftime("%d %b %Y %H:%M:%S", time.localtime()) \
         +'.  Reason: ', e.reason
 
-    
 def main():
     dbsetup()
-    retrieve_hashtags()
+    retrieve_hashtags(10)
 
 if __name__ == '__main__':
     main()

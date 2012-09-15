@@ -25,6 +25,7 @@ Preliminaries:
 
 Data collection:
 - Q: SHOULD I INCLUDE NON-HASHTAG CONCATENATED STRINGS AS A CONTROL, OR WILL THE BASIC VERSION SUFFICE?
+- Run get_hashtags
 - 100 unique instances of hashtags:
 	- m from general trends
 	- n from personal feed
@@ -34,7 +35,10 @@ Data collection:
 	- Note time collected over!
 
 Data processing:
-- Segment all strings with all algos in one pass
+- Hook into hashtags.db with pyhashseg.dbsegpop()
+- 
+- Segment all strings with both algos before eval
+
 
 
 Evaluation:
@@ -42,7 +46,7 @@ Evaluation:
 - Send segmented string to judge. She must decide if it is a legitimate English string and issues a 
 binary score.
 - Each concatenated string is presented twice: a segmented version from each algo. The judge does not
-know how the segmented string was produced wrt to algos.
+know which algo produced the segmented string shown.
 
 
 

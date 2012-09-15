@@ -79,10 +79,17 @@ def memo(f):
     return fmemo
 
 @memo
-def segment(text):
+def segmentBasic(text):
     '''Return a list of words that is the best segmentation of text.'''
     if not text: return []
-    candidates = ([first]+segment(remaining) for first,remaining in splits(text))
+    candidates = ([first]+segmentBasic(remaining) for first,remaining in splits(text))
+    return max(candidates, key=Pwords)
+
+@memo
+def segmentExtended(text):
+    '''Return a list of words that is the best segmentation of text.'''
+    if not text: return []
+    candidates = ([first]+segmentExtended(remaining) for first,remaining in splits(text))
     #intercept candidates here and implement a lookup function for viability of candidates
     return max(candidates, key=Pwords)
 
@@ -91,37 +98,57 @@ def normalize(text):
     text = re.sub('#', '', text)
     return text
 
-def dbsegpop():
-    pathname = os.path.abspath('')
-    if os.path.exists(pathname+'/hashtags.db') == False:
-        print 'Please ensure that hashtags.db is in the current directory.'
-        sys.exit(1)
-    else:
-        conn = sqlite3.connect('hashtags.db')
-        curs = conn.cursor()
-        pass #curs.execute("""INSERT INTO tblHashtags VALUES (null,?
-     
+def getsegBasic(inp):
+    inp = normalize(inp)
+    segs = segmentBasic(inp)
+    segs = ' '.join(segs)
+    print 'basic vers'
+    return segs
+
+def getsegExtended(inp):
+    inp = normalize(inp)
+    segs = segmentExtended(inp)
+    segs = ' '.join(segs)
+    print 'ext vers'
+    return segs
+
 p = argparse.ArgumentParser(description="pyhashseg.py")
-p.add_argument("-s", dest="string")
-p.add_argument("-f", dest="infile")
+p.add_argument("-e", "--extended", dest="func", action="store_const", const=getsegExtended, default=getsegBasic)
+p.add_argument("-s", "--string")
+p.add_argument("-f", "--infile")
+p.add_argument("-d", "--indb")
 
 args = p.parse_args()
 
-if args.infile:
-    with open(args.infile,'r') as f:
-        for line in enumerate(f.readlines()):
-            print 'Input: ', line[1],    #comma suppresses empty line
-            inpstr = normalize(line[1])
-            segs = segment(inpstr)
-            segs = ' '.join(segs)
-            print 'Basic output: ', segs
-            #print 'Extended output: ', ...
-elif args.string:
-    inpstr = normalize(args.string)
-    segs = segment(inpstr)
-    segs = ' '.join(segs)
-    print segs
+def readinput(args):
+    if args.string:
+        yield args.string
+    elif args.infile:
+        with open(args.infile,'r') as f:
+            for line in f:
+                yield line.rstrip("\n")
+    else:
+        pathname = os.path.abspath('')
+        if os.path.exists(pathname+'/hashtags.db') == False:
+            print 'Please ensure that hashtags.db is in the current directory.'
+            sys.exit(1)
+        else:
+            conn = sqlite3.connect('hashtags.db')
+            curs = conn.cursor()
+            curs.execute('SELECT * FROM tblHashtags')
+            mems = curs.fetchall()
+            for m in mems:  
+                yield m[2]
+        
+if args.indb:
+    for line in readinput(args):
+        print 'Input: ', line
+        output = args.func(line)    
+        print "Output: ", output 
+        #update db
 else:
-    #dbsegpop()
-    pass
+    for line in readinput(args):
+        print 'Input: ', line
+        output = args.func(line)    
+        print "Output: ", output
 
