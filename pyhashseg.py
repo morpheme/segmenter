@@ -98,19 +98,45 @@ def normalize(text):
     text = re.sub('#', '', text)
     return text
 
-def getsegBasic(inp):
-    inp = normalize(inp)
-    segs = segmentBasic(inp)
-    segs = ' '.join(segs)
-    print 'basic vers'
-    return segs
+def getsegBasic(data):
+    conn = sqlite3.connect('hashtags.db')
+    curs = conn.cursor()
+    #handles strings only from -s and -f
+    if type(data) is str:
+        data = normalize(data)
+        segs = segmentBasic(data)
+        segs = ' '.join(segs)
+        return segs
+    #handles database entries from -d
+    else:
+        uid = data[0]
+        inp = data[1]
+        inp = normalize(inp)
+        segs = segmentBasic(inp)
+        segs = ' '.join(segs)
+        curs.execute('UPDATE tblHashtags SET "text.seg.basic" = ? WHERE "UID" = ?', (segs, uid))
+        conn.commit()
+        return segs
 
-def getsegExtended(inp):
-    inp = normalize(inp)
-    segs = segmentExtended(inp)
-    segs = ' '.join(segs)
-    print 'ext vers'
-    return segs
+def getsegExtended(data):
+    conn = sqlite3.connect('hashtags.db')
+    curs = conn.cursor()
+    #handles strings only from -s and -f
+    if type(data) is str:
+        data = normalize(data)
+        segs = segmentExtended(data)
+        segs = ' '.join(segs)
+        return segs
+    #handles database entries from -d
+    else:
+        uid = data[0]
+        inp = data[1]
+        inp = normalize(inp)
+        segs = segmentExtended(inp)
+        segs = ' '.join(segs)
+        curs.execute('UPDATE tblHashtags SET "text.seg.ext" = ? WHERE "UID" = ?', (segs, uid))
+        conn.commit()
+        return segs
 
 p = argparse.ArgumentParser(description="pyhashseg.py")
 p.add_argument("-e", "--extended", dest="func", action="store_const", const=getsegExtended, default=getsegBasic)
@@ -136,16 +162,17 @@ def readinput(args):
             conn = sqlite3.connect('hashtags.db')
             curs = conn.cursor()
             curs.execute('SELECT * FROM tblHashtags')
-            mems = curs.fetchall()
-            for m in mems:  
-                yield m[2]
-        
+            rows = curs.fetchall()
+            for r in rows:  
+                yield (r[0],r[2])
+
+
+
 if args.indb:
     for line in readinput(args):
         print 'Input: ', line
         output = args.func(line)    
         print "Output: ", output 
-        #update db
 else:
     for line in readinput(args):
         print 'Input: ', line

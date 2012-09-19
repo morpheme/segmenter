@@ -81,9 +81,10 @@ def retrieve_hashtags(numhashtags=100):
                 # a check is needed on text as some "tweets" are actually just API operations
                 # the language selection doesn't really work but it's better than nothing(?)
                 if tweet.get('text') and tweet['user']['lang'] == 'en':
-                    if tweet['entities']['hashtags']['text']:
-                        ht = tweet['entities']['hashtags']['text']
-                        curs.execute("""INSERT INTO tblHashtags VALUES (null,?)""",(ht))
+                    if tweet['entities']['hashtags']:
+                        ht = tweet['entities']['hashtags'][0]['text']
+                        print ht, type(ht)
+                        curs.execute("""INSERT INTO tblHashtags ('UID','text.original') VALUES (null, ?)""",(ht,))
                         conn.commit()
                         count += 1
                         break
