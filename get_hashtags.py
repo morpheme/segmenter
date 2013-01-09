@@ -4,97 +4,75 @@
 '''
 get_hashtags module
 
-This module crawls the Twitter stream at the default 'Spritzer' access level and extracts hashtags
-into a database.
+This module accesses the Twitter REST API and extracts hashtags into a file.
 
-A file named login.txt must be located in the same directory as this module to access the Twitter
-stream.  This file holds the user's Twitter login information, in the following format:
-    
-username
-password
-
-  
 @author: Brandon Devine
 @contact: brandon.devine@gmail.com
-@since: 5:10 PM on Sept 4, 2012
+@since: 3:16:39 PM on Jan 8, 2013
 '''
 
-# Taken from Matthew Russell's recipes.  Deals with OAuth.
-from twitter__login import login  
+import twitter, time
 
-# A specialized library just for accessing the streaming API
-import tweetstream  
+twitter_api = twitter.Twitter()
+myfile = time.strftime("%H:%M:%S %d %b %Y", time.localtime())+'_hashtags.txt'
 
-# Everything else
-import os, sqlite3, time
+def get_woeids():
+    """Retrieves the set of Yahoo WOEIDs extant to the United States."""
+    print 'Retrieving woeids...'
+    woeids = []
+    try:
+        avails = twitter_api.trends.available()
+        time.sleep(25)
+        for entry in avails:
+            if entry['countryCode'] == 'US':
+                woeids.append(entry['woeid'])
+    except twitter.api.TwitterHTTPError:
+        pass
+    print str(len(woeids))+' woeids retrieved.'
+    print
+    return woeids
 
-# t is an authenticated (OAuth) Twitter object once twitter__login.py has had the 
-# requisite information entered and login() has been called at least once.  This library
-# is used for accessing RTs and anything non-streaming that calls against the API limits.
-t = login()
+def get_hashtags(woeids, number):
+    """Retrieves the top $number trending hashtags for each location represented by a WOEID."""
+    print 'Retrieving hashtags...'
+    hashtags = []
+    hashtagcount = 0
+    for woeid in woeids:
+        try:
+            trends = twitter_api.trends._(woeid)
+            time.sleep(25)
+        except twitter.api.TwitterHTTPError:
+            break
+        i=0
+        while i< number:
+            try:
+                if trends()[0]['trends'][i]['name'].startswith('#'):
+                    hashtagcount += 1
+                    print str(hashtagcount)+' of '+str(number*len(woeids))+' potential hashtags found...'
+                    hashtags.append(trends()[0]['trends'][i]['name'])
+                    time.sleep(25)
+            except twitter.api.TwitterHTTPError or urllib2.URLError:
+                break
+            i += 1
+    assemble_hashtags(hashtags)
     
-def dbsetup(dbname='hashtags.db'):
-    pathname = os.path.abspath('')  
-    global conn 
-    global curs
-    #if there is no database set up in script directory yet:
-    if os.path.exists(pathname+'/'+dbname) == False:
-        #initialize
-        conn = sqlite3.connect(str(dbname))
-        curs = conn.cursor()    
-        #set up empty table.  NB: sqlite places no limits on length of VARCHAR field
-        curs.execute("""CREATE TABLE tblHashtags (UID INTEGER PRIMARY KEY, \
-			"instudy" INTEGER DEFAULT 0, \
-			"text.original" VARCHAR(42), \
-			"text.seg.basic" VARCHAR (42), \
-			"score.seg.basic.1" INTEGER DEFAULT 0, \
-			"score.seg.basic.2" INTEGER DEFAULT 0, \
-			"text.seg.ext" VARCHAR(42), \
-			"score.seg.ext.1" INTEGER DEFAULT 0, \
-			"score.seg.ext.2" INTEGER DEFAULT 0)""") 
-        #save
-        conn.commit()
-    #else re-initialize the existing database
-    else:
-        conn = sqlite3.connect(str(dbname))
-        curs = conn.cursor()    
+def assemble_hashtags(hashtaglist):
+    """Creates a file of unique hashtags based on input."""
+    unique_hashtags = set(hashtaglist)
+    with open('corpora/hashtags/'+myfile, 'a+') as f:
+        for entry in unique_hashtags:
+            print >> f, entry
+    print
+    print str(len(unique_hashtags))+' unique hashtags retrieved.'
+    print
 
-def read_login_file():
-    pathname = os.path.abspath('')
-    try:
-        if os.path.exists(pathname+'/login.txt'):
-            pathname = pathname+'/login.txt'
-            f = open(pathname)
-            return f.readline().strip(), f.readline().strip()
-            f.close()
-    except:
-        print 'The file login.txt was not found.  Please refer to twitterinfo.py.'
-        
-(username, password) = read_login_file()
-
-def retrieve_hashtags(numhashtags=100):
-    stream = tweetstream.SampleStream(username, password)  
-    try:
-        count = 0
-        while count < numhashtags:       
-            for tweet in stream:
-                # a check is needed on text as some "tweets" are actually just API operations
-                # the language selection doesn't really work but it's better than nothing(?)
-                if tweet.get('text') and tweet['user']['lang'] == 'en':
-                    if tweet['entities']['hashtags']:
-                        ht = tweet['entities']['hashtags'][0]['text']
-                        print ht, type(ht)
-                        curs.execute("""INSERT INTO tblHashtags ('UID','text.original') VALUES (null, ?)""",(ht,))
-                        conn.commit()
-                        count += 1
-                        break
-    except tweetstream.ConnectionError, e:
-        print 'Disconnected from Twitter at '+time.strftime("%d %b %Y %H:%M:%S", time.localtime()) \
-        +'.  Reason: ', e.reason
+def handle_hashtags(numhashtags=10):
+    """Gathers ye functions while ye may."""
+    woeidlist = get_woeids()
+    get_hashtags(woeidlist, numhashtags)
 
 def main():
-    dbsetup()
-    retrieve_hashtags(10)
+    handle_hashtags()
 
 if __name__ == '__main__':
     main()
