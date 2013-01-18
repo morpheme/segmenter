@@ -33,14 +33,15 @@ def get_woeids():
     return woeids
 
 def get_hashtags(woeids, number):
-    """Retrieves the top $number trending hashtags for each location represented by a WOEID."""
+    """Retrieves up to $number trending hashtags for each location
+    represented by a WOEID."""
     print 'Retrieving hashtags...'
     hashtags = []
     hashtagcount = 0
     for woeid in woeids:
         try:
             trends = twitter_api.trends._(woeid)
-            time.sleep(25)
+            time.sleep(60)
         except twitter.api.TwitterHTTPError:
             break
         i=0
@@ -48,7 +49,8 @@ def get_hashtags(woeids, number):
             try:
                 if trends()[0]['trends'][i]['name'].startswith('#'):
                     hashtagcount += 1
-                    print str(hashtagcount)+' of '+str(number*len(woeids))+' potential hashtags found...'
+                    print str(hashtagcount)+' of '+str(number*len(woeids))+\
+                    ' potential hashtags found...'
                     hashtags.append(trends()[0]['trends'][i]['name'])
                     time.sleep(25)
             except twitter.api.TwitterHTTPError or urllib2.URLError:
@@ -61,7 +63,8 @@ def assemble_hashtags(hashtaglist):
     unique_hashtags = set(hashtaglist)
     with open('corpora/hashtags/'+myfile, 'a+') as f:
         for entry in unique_hashtags:
-            print >> f, entry
+            if entry.startswith('#'):
+                print >> f, entry
     print
     print str(len(unique_hashtags))+' unique hashtags retrieved.'
     print
