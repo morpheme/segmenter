@@ -47,16 +47,17 @@ def get_hashtags(woeids, number):
         i=0
         while i< number:
             try:
-                if trends()[0]['trends'][i]['name'].startswith('#'):
+                trend = trends()[0]['trends'][i]['name']
+                time.sleep(25)
+                if trend.startswith('#'):
                     hashtagcount += 1
                     print str(hashtagcount)+' of '+str(number*len(woeids))+\
                     ' potential hashtags found...'
-                    hashtags.append(trends()[0]['trends'][i]['name'])
-                    time.sleep(25)
+                    hashtags.append(trend)
             except twitter.api.TwitterHTTPError or urllib2.URLError:
                 break
             i += 1
-    assemble_hashtags(hashtags)
+    return hashtags
     
 def assemble_hashtags(hashtaglist):
     """Creates a file of unique hashtags based on input."""
@@ -69,10 +70,11 @@ def assemble_hashtags(hashtaglist):
     print str(len(unique_hashtags))+' unique hashtags retrieved.'
     print
 
-def handle_hashtags(numhashtags=10):
+def handle_hashtags(numhashtags=5):
     """Gathers ye functions while ye may."""
     woeidlist = get_woeids()
-    get_hashtags(woeidlist, numhashtags)
+    hashtags= get_hashtags(woeidlist, numhashtags)
+    assemble_hashtags(hashtags)
 
 def main():
     handle_hashtags()

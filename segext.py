@@ -56,7 +56,7 @@ def get_datafile(name, sep='\t'):
     
 def get_Pwords(words): 
     '''The Naive Bayes probability of a sequence of words.'''   #although really, there's not much Bayesian voodoo going on
-    return product(Pw(w) for w in words)        #Pw can take w as arg because of defined __call__ magic method
+    return get_product(Pw(w) for w in words)        #Pw can take w as arg because of defined __call__ magic method
 
 def get_product(nums):
     '''Returns the product of a sequence of numbers.'''

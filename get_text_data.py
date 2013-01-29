@@ -18,9 +18,7 @@ in order to create a hashtag-specific frequency distribution.
 
 import sqlite3, time, os, re, glob, requests, json, copy
 from collections import defaultdict
-
-# authenticate with the Topsy API
-requests.get('http://otter.topsy.com', auth=('$name', '$key'))
+from utilities import read_api_key
 
 def setup_db(dbname='hashtags.db'):
     """Creates a database for hashtags, their segmentations,
@@ -65,9 +63,9 @@ def retrieve_text(hashtag, numtweets=500):      #changing numtweets necessitates
     grabbed, sent to the cleaners, and added to a raw corpus that will inform 
     a hashtag-specific frequency distribution.
     """
-    countpayload = {'q': hashtag}
+    payload = {'apikey': read_api_key('./topsyapikey.txt'),'q': hashtag}
     r = requests.get("http://otter.topsy.com/searchcount.json", \
-                     params=countpayload)
+                     params=payload)
     info = json.loads(json.dumps(r.json, sort_keys=True, indent=4))
     ttl = []    #total term list of all text in numtweets tweets with hashtag
     if info['response']['h'] < numtweets:
@@ -162,7 +160,7 @@ def main():
     print 'Building hashtag corpora...'
     print
     for hashtag in hashtaglist:
-        print 'Retrieving text for '+str(hashtag)+'...'
+        print 'Retrieving text for '+str(hashtag)+' ...'
         termlist = retrieve_text(hashtag)
         if len(termlist) == 0:
             print 'Hashtag corpus discarded due to lack of data.'
