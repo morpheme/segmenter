@@ -1,5 +1,6 @@
 login.txt
 scratch.py
+topsyapikey.txt
 *.py[co]
 
 # Packages
