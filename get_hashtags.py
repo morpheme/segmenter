@@ -77,7 +77,11 @@ def handle_hashtags(numhashtags=5):
     assemble_hashtags(hashtags)
 
 def main():
+    print 'Started at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
     handle_hashtags()
+    print 'Done at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
 
 if __name__ == '__main__':
     main()

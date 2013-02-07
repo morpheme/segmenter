@@ -32,11 +32,11 @@ def setup_db(dbname='hashtags.db'):
         curs = conn.cursor()    
         curs.execute("""CREATE TABLE tblHashtags (UID INTEGER PRIMARY KEY, \
             "instudy" INTEGER DEFAULT 0, \
-            "text_original" VARCHAR(42), \
-            "text_seg_basic" VARCHAR (42), \
-            "score_seg_basic" INTEGER DEFAULT 0, \
-            "text_seg_ext" VARCHAR(42), \
-            "score_seg_ext" INTEGER DEFAULT 0)""") 
+            "text.original" VARCHAR(42), \
+            "text.seg.basic" VARCHAR (42), \
+            "score.seg.basic" INTEGER DEFAULT 0, \
+            "text.seg.ext" VARCHAR(42), \
+            "score.seg.ext" INTEGER DEFAULT 0)""") 
         conn.commit()
     #else re-initialize the existing database
     else:
@@ -51,8 +51,8 @@ def retrieve_hashtags(path='/home/brandon/code/segmenter/corpora/hashtags'):
             for hashtag in f.readlines():
                 print hashtag, type(hashtag)
                 hashtags.append(hashtag.strip())
-                curs.execute("""INSERT INTO tblHashtags (UID, text_original) \
-                VALUES (null, ?)""",(hashtag.strip(),))
+                curs.execute("""INSERT INTO tblHashtags (UID, 'text.original') \
+                VALUES (null, ?)""",(hashtag,))
     conn.commit()
     return hashtags
 
@@ -74,19 +74,23 @@ def retrieve_text(hashtag, numtweets=500):      #changing numtweets necessitates
     else:
         i = 1
         while i <= 5:
-            print 'Getting page '+str(i)+'...'
-            tweetpayload = {'q': hashtag, 'allow_lang':'en', 'window':'h23', \
-                            'page':i, 'perpage':10}
-            r = requests.get("http://otter.topsy.com/search.json", \
-                             params=tweetpayload)
-            tweets = json.loads(json.dumps(r.json, sort_keys=True, indent=4))\
-            ['response']['list']   
-            for tweet in tweets:
-                text = json.loads(json.dumps(tweet, sort_keys=True, indent=4))\
-                ['content']
-                text = clean_text(text)
-                ttl.extend(text.split())
-                print 'Tweet added to term list...'
+            try:
+                print 'Getting page '+str(i)+'...'
+                tweetpayload = {'apikey': read_api_key('./topsyapikey.txt'), \
+                                'q': hashtag, 'allow_lang':'en', 'window':'h23', \
+                                'page':i, 'perpage':10}
+                r = requests.get("http://otter.topsy.com/search.json", \
+                                 params=tweetpayload)
+                tweets = json.loads(json.dumps(r.json, sort_keys=True, indent=4))\
+                ['response']['list']  
+                for tweet in tweets:
+                    text = json.loads(json.dumps(tweet, sort_keys=True, indent=4))\
+                    ['content']
+                    text = clean_text(text)
+                    ttl.extend(text.split())
+                    print 'Tweet added to term list...'
+            except KeyError:
+                pass
             i += 1
         print 'Returning term list...'
         return ttl
@@ -155,6 +159,7 @@ def main():
     setup_db()
     print 'Retrieving hashtags and populating database...'
     hashtaglist = retrieve_hashtags()
+    #hashtaglist = ['#SAMPLEHASHTAG']    #use for quick tests
     print 'Building gold standard corpus...'
     unigrams = get_unigram_corpus()
     print 'Building hashtag corpora...'
