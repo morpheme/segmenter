@@ -4,56 +4,30 @@
 '''
 get_text_data module
 
-This module creates a database populated with hashtags imported from the file 
-created by get_hashtags.py and builds a gold standard frequency distribution of
-terms from Peter Norvig's modified unigrams.txt. It then filters the Twitter 
-stream for each hashtag, and if a sufficient number of tweets containing it are
-found, those tweets are collected, cleaned, and compared to the gold standard 
-in order to create a hashtag-specific frequency distribution.
+This module imports the file created by get_hashtags.py and builds a gold 
+standard frequency distribution of terms from Peter Norvig's modified 
+unigrams.txt. It then filters the Twitter stream for each hashtag, and if a 
+sufficient number of tweets containing it are found, those tweets are collected,
+cleaned, and compared to the gold standard in order to create a hashtag-specific 
+frequency distribution.
  
 @author: Brandon Devine
 @contact: brandon.devine@gmail.com
 @since: 5:10 PM on Jan 8, 2013
 '''
 
-import sqlite3, time, os, re, glob, requests, json, copy
+import time, re, glob, requests, json, copy
 from collections import defaultdict
 from utilities import read_api_key
 
-def setup_db(dbname='hashtags.db'):
-    """Creates a database for hashtags, their segmentations,
-    and their respective scores."""
-    pathname = os.path.abspath('')  
-    global conn 
-    global curs
-    #if there is no database set up in script directory yet:
-    if os.path.exists(pathname+'/'+dbname) == False:
-        conn = sqlite3.connect(str(dbname))
-        curs = conn.cursor()    
-        curs.execute("""CREATE TABLE tblHashtags (UID INTEGER PRIMARY KEY, \
-            "instudy" INTEGER DEFAULT 0, \
-            "text.original" VARCHAR(42), \
-            "text.seg.basic" VARCHAR (42), \
-            "score.seg.basic" INTEGER DEFAULT 0, \
-            "text.seg.ext" VARCHAR(42), \
-            "score.seg.ext" INTEGER DEFAULT 0)""") 
-        conn.commit()
-    #else re-initialize the existing database
-    else:
-        conn = sqlite3.connect(str(dbname))
-        curs = conn.cursor()
 
 def retrieve_hashtags(path='/home/brandon/code/segmenter/corpora/hashtags'):
-    """Pulls hashtags out of the file created by get_hashtags.py."""
+    """Pulls hashtags out of the file(s) created by get_hashtags.py."""
     hashtags = []
     for hfile in glob.glob(path+'/*.txt'):
         with open(hfile, 'r') as f:
             for hashtag in f.readlines():
-                print hashtag, type(hashtag)
                 hashtags.append(hashtag.strip())
-                curs.execute("""INSERT INTO tblHashtags (UID, 'text.original') \
-                VALUES (null, ?)""",(hashtag,))
-    conn.commit()
     return hashtags
 
 def retrieve_text(hashtag, numtweets=500):      #changing numtweets necessitates changing tweetpayload params below
@@ -69,13 +43,12 @@ def retrieve_text(hashtag, numtweets=500):      #changing numtweets necessitates
     info = json.loads(json.dumps(r.json, sort_keys=True, indent=4))
     ttl = []    #total term list of all text in numtweets tweets with hashtag
     if info['response']['h'] < numtweets:
-        print 'Not enough values!'
         return ttl
     else:
         i = 1
         while i <= 5:
             try:
-                print 'Getting page '+str(i)+'...'
+                #print 'Getting page '+str(i)+'...'
                 tweetpayload = {'apikey': read_api_key('./topsyapikey.txt'), \
                                 'q': hashtag, 'allow_lang':'en', 'window':'h23', \
                                 'page':i, 'perpage':10}
@@ -88,7 +61,7 @@ def retrieve_text(hashtag, numtweets=500):      #changing numtweets necessitates
                     ['content']
                     text = clean_text(text)
                     ttl.extend(text.split())
-                    print 'Tweet added to term list...'
+                    #print 'Tweet added to term list...'
             except KeyError:
                 pass
             i += 1
@@ -148,18 +121,19 @@ def make_hashtag_corpus(hashtag,termlist,freqdist_unigrams):
     #tokens found in unigrams but not hashtags already exist in new at their proper ratio. 
     #make the new corpus text file from the accumulated tokens and their counts in new
     myfile = str(hashtag)+'.txt'
-    with open('corpora/tweets/'+myfile+'.txt', 'w+') as f:
+    with open('corpora/tweets/'+myfile, 'w+') as f:
         for k,v in sorted(new.items(), key=lambda tup: tup[0]):
-            print >> f, k+'\t'+str(v)
+            try:
+                print >> f, k+'\t'+str(v)
+            except UnicodeEncodeError:
+                pass
     
 def main():
-    print 'Started main() at '+\
+    print 'Started get_text_data.py at '+\
     time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print 'Initializing database...'
-    setup_db()
     print 'Retrieving hashtags and populating database...'
     hashtaglist = retrieve_hashtags()
-    #hashtaglist = ['#SAMPLEHASHTAG']    #use for quick tests
+    #hashtaglist = ['#SAMPLEHASHTAG']    #use for one-off tests
     print 'Building gold standard corpus...'
     unigrams = get_unigram_corpus()
     print 'Building hashtag corpora...'
@@ -173,8 +147,8 @@ def main():
             print 'Making corpus for '+str(hashtag)+' beginning at '\
             +time.strftime("%d %b %Y %H:%M:%S", time.localtime())
             make_hashtag_corpus(hashtag,termlist,unigrams)
-        print
     print 'Done at '+time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    print
 
 if __name__ == '__main__':
     main()

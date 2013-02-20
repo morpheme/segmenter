@@ -29,7 +29,7 @@ command line.
 @since: 8:55:36 PM on Nov 25, 2012
 '''
 
-import argparse, operator, sys, os, re, sqlite3
+import argparse, operator, sys, os, re, sqlite3, time
 
 class Pdist(dict):
     '''A probability distribution estimated from counts in a datafile.'''
@@ -145,8 +145,17 @@ def read_input(args):
             for r in rows:  
                 yield (r[0],r[2])
 
-for line in read_input(args):
-    print 'Input: ', line
-    output = set_segs(line)    
-    print "Output: ", output
+def main():
+    print 'Started segbase.py at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    for line in read_input(args):
+        print 'Input: ', line[1]
+        print 'Corpus size: ', N
+        output = set_segs(line)    
+        print "Output: ", output
+    print 'Done at '+ time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    print
+        
+if __name__ == '__main__':
+    main()
 

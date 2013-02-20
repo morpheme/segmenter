@@ -29,7 +29,6 @@ def get_woeids():
     except twitter.api.TwitterHTTPError:
         pass
     print str(len(woeids))+' woeids retrieved.'
-    print
     return woeids
 
 def get_hashtags(woeids, number):
@@ -53,22 +52,22 @@ def get_hashtags(woeids, number):
                     hashtagcount += 1
                     print str(hashtagcount)+' of '+str(number*len(woeids))+\
                     ' potential hashtags found...'
-                    hashtags.append(trend)
+                    hashtags.append(trend.lower())
             except twitter.api.TwitterHTTPError or urllib2.URLError:
                 break
             i += 1
+    print 'Ceasing hashtag retrieval.'
     return hashtags
     
 def assemble_hashtags(hashtaglist):
     """Creates a file of unique hashtags based on input."""
     unique_hashtags = set(hashtaglist)
+    print 'Creating hashtag set...'
     with open('corpora/hashtags/'+myfile, 'a+') as f:
         for entry in unique_hashtags:
-            if entry.startswith('#'):
+            if entry.startswith('#'):   #double-check 
                 print >> f, entry
-    print
     print str(len(unique_hashtags))+' unique hashtags retrieved.'
-    print
 
 def handle_hashtags(numhashtags=5):
     """Gathers ye functions while ye may."""
@@ -77,11 +76,12 @@ def handle_hashtags(numhashtags=5):
     assemble_hashtags(hashtags)
 
 def main():
-    print 'Started at '+\
+    print 'Started get_hashtags.py at '+\
     time.strftime("%d %b %Y %H:%M:%S", time.localtime())
     handle_hashtags()
     print 'Done at '+\
     time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    print
 
 if __name__ == '__main__':
     main()

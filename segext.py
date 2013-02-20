@@ -29,7 +29,7 @@ segmentation of text that may be relevant to the current timeframe.
 @since: 8:55:36 PM on Aug 25, 2012
 '''
 
-import argparse, operator, re, sqlite3
+import argparse, operator, re, sqlite3, os, sys, time
 from collections import defaultdict
 
 class Pdist(dict):
@@ -97,28 +97,29 @@ def set_segs(data):
     try:
         conn = sqlite3.connect('hashtags.db')
         curs = conn.cursor()
-        curs.execute('SELECT * FROM tblHashtags WHERE "text_original" = ?',\
-                     (data,))
-        row = curs.fetch()
-        uid = row[0]
-        inp = row[2]
-        db = True
+        curs.execute('SELECT * FROM tblHashtags WHERE "text.original" = ?',\
+                     (unicode(data),))
+        for row in curs:
+            uid = row[0]
+            inp = row[2]
+            ninp = normalize(inp)
+            segs = get_segs(ninp)
+            data = ' '.join(segs)
+            curs.execute('UPDATE tblHashtags SET "text.seg.ext" = ? WHERE \
+            "UID" = ?', (data, uid))
+            conn.commit()
     except:
         inp = data
-    ninp = normalize(inp)
-    segs = get_segs(ninp)
-    data = ' '.join(segs)
-    if db:
-        curs.execute('UPDATE tblHashtags SET "text_seg_ext" = ? WHERE \
-        "UID" = ?', (data, uid))
-        conn.commit()
+        ninp = normalize(inp)
+        segs = get_segs(ninp)
+        data = ' '.join(segs)
     return data
 
 def get_corpus_counts(corpus):
     """Translates the given corpus into a dictionary-based frequency 
     distribution to return the total count of tokens in the corpus"""
     freqdist = defaultdict(int)
-    with open('corpora/'+corpus, 'r') as f:
+    with open(corpus, 'r') as f:
         for l in f.readlines():
             freqdist[l.strip().split('\t')[0]] = \
             int(l.strip().split('\t')[1])
@@ -134,15 +135,41 @@ def read_input(args):
     '''Reads data source from CLI.'''
     if args.string:
         yield args.string
-    else:
+    elif args.infile:
         with open(args.infile,'r') as f:
             for line in f:
                 yield line.rstrip("\n")
+    else:
+        pathname = os.path.abspath('')
+        if os.path.exists(pathname+'/hashtags.db') == False:
+            print 'Please ensure that hashtags.db is in the current directory.'
+            sys.exit(1)
+        else:
+            conn = sqlite3.connect('hashtags.db')
+            curs = conn.cursor()
+            curs.execute('SELECT * FROM tblHashtags')
+            rows = curs.fetchall()
+            for r in rows:  
+                yield (r[2])
 
-for line in read_input(args):
-    with open('corpora/'+str(line)+'.txt', 'r') as f:
-        print 'Input: ', line
-        N = get_corpus_counts(str(line)+'.txt')
-        Pw  = Pdist(get_datafile('corpora/'+str(line)+'.txt'), N, get_unk_word_prob)
-        output = set_segs(line)    
-        print "Output: ", output
+def main():
+    print 'Started segext.py at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    for line in read_input(args):
+        try:
+            pathname = os.path.abspath('')
+            print 'Input: ', line
+            N = get_corpus_counts(pathname+'/corpora/tweets/'+str(line)+'.txt')
+            print 'Corpus size: ',N
+            global Pw
+            Pw  = Pdist(get_datafile(pathname+'/corpora/tweets/'+str(line)+'.txt'),\
+                        N, get_unk_word_prob)
+            output = set_segs(line)    
+            print "Output: ", output
+        except IOError:
+            pass
+    print 'Done at '+ time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    print
+        
+if __name__ == '__main__':
+    main()
