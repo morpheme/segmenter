@@ -12,8 +12,16 @@ created by get_text_data.py.
 @since: 5:10 PM on Jan 8, 2013 
 '''
 
-import sqlite3, time, os
+import sqlite3, time, os, logging
 
+log = time.strftime('./logs/'+'%H:%M:%S %d %b %Y', time.localtime())+'.log'
+
+formatter = logging.Formatter('%(asctime)s %(message)s', '%H:%M:%S %d %b %Y')
+handler = logging.FileHandler(log)
+handler.setFormatter(formatter)
+logger = logging.getLogger()
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 def setup_db(dbname='hashtags.db'):
     """Creates a database for hashtags, their segmentations,
@@ -47,14 +55,14 @@ def populate_db(path='/home/brandon/code/segmenter/corpora/tweets'):
     conn.commit()
 
 def main():
-    print 'Started init_database.py at '+\
-    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print 'Initializing database...'
+    logging.info('Started init_database.py at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
+    logging.info('Initializing database...')
     setup_db()
-    print 'Populating database...'
+    logging.info('Populating database...')
     populate_db()
-    print 'Done at '+time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print
+    logging.info('Done at '+time.strftime("%d %b %Y %H:%M:%S", \
+                                          time.localtime()))
 
 if __name__ == '__main__':
     main()

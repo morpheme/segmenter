@@ -29,8 +29,17 @@ segmentation of text that may be relevant to the current timeframe.
 @since: 8:55:36 PM on Aug 25, 2012
 '''
 
-import argparse, operator, re, sqlite3, os, sys, time
+import argparse, operator, re, sqlite3, os, sys, time, logging
 from collections import defaultdict
+
+log = time.strftime('./logs/'+'%H:%M:%S %d %b %Y', time.localtime())+'.log'
+
+formatter = logging.Formatter('%(asctime)s %(message)s', '%H:%M:%S %d %b %Y')
+handler = logging.FileHandler(log)
+handler.setFormatter(formatter)
+logger = logging.getLogger()
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 class Pdist(dict):
     ''''A probability distribution estimated from counts in a datafile.'''
@@ -97,8 +106,8 @@ def set_segs(data):
     try:
         conn = sqlite3.connect('hashtags.db')
         curs = conn.cursor()
-        curs.execute('SELECT * FROM tblHashtags WHERE "text.original" = ?',\
-                     (unicode(data),))
+        curs.execute('SELECT * FROM tblHashtags WHERE "text.original" = ? AND \
+                     "text.seg.ext" IS NULL',(unicode(data),))
         for row in curs:
             uid = row[0]
             inp = row[2]
@@ -142,34 +151,36 @@ def read_input(args):
     else:
         pathname = os.path.abspath('')
         if os.path.exists(pathname+'/hashtags.db') == False:
-            print 'Please ensure that hashtags.db is in the current directory.'
+            logging.info('Please ensure that hashtags.db is in the \
+                current directory.')
             sys.exit(1)
         else:
             conn = sqlite3.connect('hashtags.db')
             curs = conn.cursor()
-            curs.execute('SELECT * FROM tblHashtags')
+            curs.execute('SELECT * FROM tblHashtags WHERE \
+                "text.seg.ext" IS NULL')
             rows = curs.fetchall()
             for r in rows:  
                 yield (r[2])
 
 def main():
-    print 'Started segext.py at '+\
-    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    logging.info('Started segext.py at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
     for line in read_input(args):
         try:
             pathname = os.path.abspath('')
-            print 'Input: ', line
+            logging.info('Input: %s', str(line))
             N = get_corpus_counts(pathname+'/corpora/tweets/'+str(line)+'.txt')
-            print 'Corpus size: ',N
+            logging.info('Corpus size: %s',str(N))
             global Pw
-            Pw  = Pdist(get_datafile(pathname+'/corpora/tweets/'+str(line)+'.txt'),\
-                        N, get_unk_word_prob)
+            Pw = Pdist(get_datafile(pathname+'/corpora/tweets/'+str(line)+\
+                        '.txt'),N, get_unk_word_prob)
             output = set_segs(line)    
-            print "Output: ", output
+            logging.info('Output: %s', str(output))
         except IOError:
             pass
-    print 'Done at '+ time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print
+    logging.info('Done at '+ time.strftime("%d %b %Y %H:%M:%S", \
+                    time.localtime()))
         
 if __name__ == '__main__':
     main()

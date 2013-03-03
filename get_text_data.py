@@ -16,10 +16,18 @@ frequency distribution.
 @since: 5:10 PM on Jan 8, 2013
 '''
 
-import time, re, glob, requests, json, copy
+import time, re, glob, requests, json, copy, logging
 from collections import defaultdict
 from utilities import read_api_key
 
+log = time.strftime('./logs/'+'%H:%M:%S %d %b %Y', time.localtime())+'.log'
+
+formatter = logging.Formatter('%(asctime)s %(message)s', '%H:%M:%S %d %b %Y')
+handler = logging.FileHandler(log)
+handler.setFormatter(formatter)
+logger = logging.getLogger()
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 def retrieve_hashtags(path='/home/brandon/code/segmenter/corpora/hashtags'):
     """Pulls hashtags out of the file(s) created by get_hashtags.py."""
@@ -65,7 +73,7 @@ def retrieve_text(hashtag, numtweets=500):      #changing numtweets necessitates
             except KeyError:
                 pass
             i += 1
-        print 'Returning term list...'
+        logging.info('Returning term list...')
         return ttl
 
 def clean_text(text):
@@ -129,26 +137,25 @@ def make_hashtag_corpus(hashtag,termlist,freqdist_unigrams):
                 pass
     
 def main():
-    print 'Started get_text_data.py at '+\
-    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print 'Retrieving hashtags and populating database...'
+    logging.info('Started get_text_data.py at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
+    logging.info('Retrieving hashtags and populating database...')
     hashtaglist = retrieve_hashtags()
     #hashtaglist = ['#SAMPLEHASHTAG']    #use for one-off tests
-    print 'Building gold standard corpus...'
+    logging.info('Building gold standard corpus...')
     unigrams = get_unigram_corpus()
-    print 'Building hashtag corpora...'
-    print
+    logging.info('Building hashtag corpora...')
     for hashtag in hashtaglist:
-        print 'Retrieving text for '+str(hashtag)+' ...'
+        logging.info('Retrieving text for '+str(hashtag)+' ...')
         termlist = retrieve_text(hashtag)
         if len(termlist) == 0:
-            print 'Hashtag corpus discarded due to lack of data.'
+            logging.info('Hashtag corpus discarded due to lack of data.')
         else:
-            print 'Making corpus for '+str(hashtag)+' beginning at '\
-            +time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+            logging.info('Making corpus for '+str(hashtag)+' beginning at '\
+            +time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
             make_hashtag_corpus(hashtag,termlist,unigrams)
-    print 'Done at '+time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print
+    logging.info('Done at '+time.strftime("%d %b %Y %H:%M:%S", \
+                                          time.localtime()))
 
 if __name__ == '__main__':
     main()

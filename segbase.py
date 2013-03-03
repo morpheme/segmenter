@@ -29,7 +29,16 @@ command line.
 @since: 8:55:36 PM on Nov 25, 2012
 '''
 
-import argparse, operator, sys, os, re, sqlite3, time
+import argparse, operator, sys, os, re, sqlite3, time, logging
+
+log = time.strftime('./logs/'+'%H:%M:%S %d %b %Y', time.localtime())+'.log'
+
+formatter = logging.Formatter('%(asctime)s %(message)s', '%H:%M:%S %d %b %Y')
+handler = logging.FileHandler(log)
+handler.setFormatter(formatter)
+logger = logging.getLogger()
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 class Pdist(dict):
     '''A probability distribution estimated from counts in a datafile.'''
@@ -54,7 +63,7 @@ def get_datafile(name, sep='\t'):
         line = line.rstrip('\n')
         yield line.split(sep)
         
-N = 1024908267229   #number of tokens
+N = 1024908267229   
 
 Pw  = Pdist(get_datafile('corpora/unigrams.txt'), N, get_unk_word_prob)
 
@@ -135,26 +144,29 @@ def read_input(args):
     else:
         pathname = os.path.abspath('')
         if os.path.exists(pathname+'/hashtags.db') == False:
-            print 'Please ensure that hashtags.db is in the current directory.'
+            logging.info('Please ensure that hashtags.db is in the \
+                current directory.')
             sys.exit(1)
         else:
             conn = sqlite3.connect('hashtags.db')
             curs = conn.cursor()
-            curs.execute('SELECT * FROM tblHashtags')
+            curs.execute('SELECT * FROM tblHashtags WHERE \
+                "text.seg.basic" IS NULL')
             rows = curs.fetchall()
-            for r in rows:  
-                yield (r[0],r[2])
+            for r in rows:
+                yield (r[0],str(r[2]))
 
 def main():
-    print 'Started segbase.py at '+\
-    time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    logging.info('Started segbase.py at '+\
+    time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
+    logging.info('Corpus size: %s', N)
     for line in read_input(args):
-        print 'Input: ', line[1]
-        print 'Corpus size: ', N
-        output = set_segs(line)    
-        print "Output: ", output
-    print 'Done at '+ time.strftime("%d %b %Y %H:%M:%S", time.localtime())
-    print
+        inp = line[1]
+        logging.info('Input: %s', inp)
+        output = set_segs(line)  
+        logging.info('Output: %s', output)
+    logging.info('Done at '+ time.strftime("%d %b %Y %H:%M:%S", \
+                                           time.localtime()))
         
 if __name__ == '__main__':
     main()
