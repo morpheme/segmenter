@@ -161,7 +161,8 @@ def main():
     time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
     logging.info('Corpus size: %s', N)
     for line in read_input(args):
-        inp = line[1]
+        inp = line      #Needs to be set to line only when testing -s
+        #inp = line[1]   
         logging.info('Input: %s', inp)
         output = set_segs(line)  
         logging.info('Output: %s', output)

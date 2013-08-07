@@ -139,9 +139,9 @@ def make_hashtag_corpus(hashtag,termlist,freqdist_unigrams):
 def main():
     logging.info('Started get_text_data.py at '+\
     time.strftime("%d %b %Y %H:%M:%S", time.localtime()))
-    logging.info('Retrieving hashtags and populating database...')
-    hashtaglist = retrieve_hashtags()
-    #hashtaglist = ['#SAMPLEHASHTAG']    #use for one-off tests
+    logging.info('Retrieving hashtags...')
+    #hashtaglist = retrieve_hashtags()
+    hashtaglist = ['#SanDiego']    #use for one-off tests
     logging.info('Building gold standard corpus...')
     unigrams = get_unigram_corpus()
     logging.info('Building hashtag corpora...')
